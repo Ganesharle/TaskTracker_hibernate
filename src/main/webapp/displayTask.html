@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task List</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2 id="task">Task List</h2>
+    <a href="addTask.html">Add New Task</a>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>title</th>
+                <th>description</th>
+                <th>status</th>
+                <th>Update/Delete</th>
+                
+            </tr>
+        </thead>
+        <tbody id="taskTable"></tbody>
+    </table>
+    <p id="message"></p>
+
+    <script>
+        const baseUrl = window.location.pathname.includes('TaskTrackerProject') ? '/TaskTrackerProject' : '';
+        const taskUrl = `${baseUrl}/task/`;
+
+
+        function loadTask() {
+            fetch(taskUrl)
+                .then(response => response.json())
+                .then(data => {
+                	 console.log('Raw response data:', data);
+                	 const tasks = data.task; // lowercase
+
+                    const tableBody = document.getElementById('taskTable');
+                    tableBody.innerHTML = '';
+                    tasks.forEach(tsk => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${tsk.id}</td>
+                            <td>${tsk.title}</td>
+                            <td>${tsk.description}</td>
+                            <td>${tsk.status}</td>
+                            
+                            <td>
+                                <a href="updatetask.html?id=${tsk.id}">Edit</a>
+                                <button onclick="deleteTask(${tsk.id})">Delete</button>
+
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    document.getElementById('message').textContent = 'Error loading task: ' + error.message;
+                });
+        }
+
+        function deleteTask(taskId) {
+            if (confirm('Are you sure you want to delete this task?')) {
+                const formData = new FormData();
+                formData.append('action', 'delete');
+                formData.append('taskId', taskId);
+                fetch(taskUrl, {
+                    method: 'POST',
+                    body: new URLSearchParams(formData), // Convert FormData to URL-encoded string
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded' // Set correct content type
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('message').textContent = data.error === 'Invalid action' ? 'Invalid' : data.error;
+                    } else {
+                        document.getElementById('message').textContent = data.message;
+                        loadTask();
+                    }
+                });
+            }
+        }
+
+        loadTask();
+    </script>
+</body>
+</html>

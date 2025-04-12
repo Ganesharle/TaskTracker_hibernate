@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Task</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2>Update task</h2>
+    <form id="updateForm">
+        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="taskId" id="taskId">
+        <div>
+            <label>Task:</label>
+            <input type="text" name="title" id="title" required>
+        </div>
+        <div>
+            <label>description :</label>
+            <input type="text" name="description" id="description" required>
+        </div>
+        <div>
+            <label>status:</label>
+            <input type="text" name="status" id="status" required>
+        
+        <button type="submit">Update</button>
+        </div>
+    </form>
+    <p id="message"></p>
+
+    <script>
+    const baseUrl = window.location.pathname.includes('TaskTrackerProject') ? '/TaskTrackerProject' : '';
+    const taskUrl = `${baseUrl}/task`;
+    const urlParams = new URLSearchParams(window.location.search);
+    const taskId = urlParams.get('id');
+
+    //  Check for valid taskId in URL
+    if (!taskId || isNaN(taskId)) {
+        document.getElementById('message').textContent = 'Invalid or missing task ID in URL.';
+        throw new Error('Missing or invalid task ID');
+    }
+
+    //  Fetch task data
+    fetch(`${taskUrl}/edit/${taskId}`)
+        .then(response => response.json())
+        .then(Task => {
+            if (Task.error) {
+                document.getElementById('message').textContent = Task.error;
+            } else {
+                document.getElementById('taskId').value = Task.id;
+                document.getElementById('title').value = Task.title;
+                document.getElementById('description').value = Task.description;
+                document.getElementById('status').value = Task.status;
+            }
+        })
+        .catch(error => {
+            document.getElementById('message').textContent = 'Error loading Task: ' + error.message;
+        });
+
+    //  Submit handler
+    document.getElementById('updateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const taskIdValue = document.getElementById('taskId').value;
+
+        // Sanity check before sending
+        if (!taskIdValue || isNaN(taskIdValue)) {
+            document.getElementById('message').textContent = 'Invalid task ID. Cannot submit form.';
+            return;
+        }
+
+        const formData = new FormData(this);
+        fetch(taskUrl, {
+            method: 'POST',
+            body: new URLSearchParams(formData),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const message = document.getElementById('message');
+            if (data.error) {
+                message.style.color = 'red';
+                message.textContent = data.error === 'Invalid action' ? 'Invalid' : data.error;
+            } else {
+                message.style.color = 'green';
+                message.textContent = data.message;
+                setTimeout(() => window.location.href = 'displayTask.html', 1000);
+            }
+        })
+        .catch(error => {
+            document.getElementById('message').textContent = 'Error: ' + error.message;
+        });
+    });
+</script>
+
+</body>
+</html>

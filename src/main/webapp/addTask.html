@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register task</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2>Register New task</h2>
+    <form id="registerForm">
+        <input type="hidden" name="action" value="register">
+       
+        <div>
+            <label>title</label>
+            <input type="text" name="title" required>
+        </div>
+        <div>
+            <label>description:</label>
+            <input type="text" name="description" required>
+        </div>
+        <div>
+            <label>Status:</label>
+            <input type="text" name="status" required>
+        </div>
+        <button type="submit">Register</button>
+    </form>
+    <p id="message"></p>
+
+    <script>
+        const baseUrl = window.location.pathname.includes('TaskTrackerProject') ? '/TaskTrackerProject' : '';
+        const taskUrl = `${baseUrl}/task`;
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch(taskUrl, {
+                method: 'POST',
+                body: new URLSearchParams(formData), // Convert FormData to URL-encoded string
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded' // Set correct content type
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const message = document.getElementById('message');
+                if (data.error) {
+                    message.style.color = 'red';
+                    message.textContent = data.error === 'Invalid action' ? 'Invalid' : data.error;
+                } else {
+                    message.style.color = 'green';
+                    message.textContent = data.message;
+                    this.reset();
+                    setTimeout(() => window.location.href = 'displayTask.html', 1000);
+                }
+            })
+            .catch(error => {
+                document.getElementById('message').textContent = 'Error: ' + error.message;
+            });
+        });
+    </script>
+</body>
+</html>

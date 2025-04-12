@@ -1,0 +1,8 @@
+model\Task.class
+util\HibernateUtil.class
+DAO\TaskDAO.class
+Servlet\EditTaskServlet.class
+app\Main.class
+Servlet\DeleteTaskServlet.class
+Servlet\ListTaskServlet.class
+Servlet\AddTaskServlet.class
